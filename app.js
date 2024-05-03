@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const Note = require("./models/Notes");
 //Step 5: Models importation
 const User = require("./models/User");
-//Step 7: Swagger importation
+//Step 8: Swagger importation
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 
@@ -16,7 +16,7 @@ const app = express();
 //Config JSON response
 app.use(express.json());
 
-//Step 8: Swagger configuration
+//Step 9: Swagger configuration
 const swaggerDocument = YAML.load('./swagger.yaml');
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
   res.status(200).json({ msg: "Welcome to the Swing Notes API!🎉" });
 });
 
-//6 Private Route
+//Step 6: Private Route
 app.get("/user/:id", checkToken, async (req, res) => {
   const id = req.params.id;
 
@@ -152,7 +152,7 @@ app.post("/api/user/login", async (req, res) => {
   }
 });
 
-//Step 6: CRUD notes
+//Step 7: CRUD notes
 //get
 app.get("/api/notes", checkToken, async (req, res) => {
   try {
