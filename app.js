@@ -5,9 +5,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Note = require("./models/Notes");
-//Step 5: Models importation
 const User = require("./models/User");
-//Step 8: Swagger importation
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 
@@ -16,7 +14,7 @@ const app = express();
 //Config JSON response
 app.use(express.json());
 
-//Step 9: Swagger configuration
+//Step 8: Swagger configuration
 const swaggerDocument = YAML.load('./swagger.yaml');
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -56,7 +54,7 @@ function checkToken(req, res, next) {
   } catch (error) {
     res.status(400).json({ msg: "Invalid token!" });
   }
-}
+};
 
 //Step 4: Register User
 app.post("/api/user/signup", async (req, res) => {
