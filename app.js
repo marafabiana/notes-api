@@ -1,21 +1,28 @@
-//1 Imports
+//Step 1: Imports
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Note = require("./models/Notes");
+//Step 5: Models importation
+const User = require("./models/User");
+//Step 7: Swagger importation
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
+
 
 const app = express();
 //Config JSON response
 app.use(express.json());
 
-//5 Models *****************************************
-const User = require("./models/User");
+//Step 8: Swagger configuration
+const swaggerDocument = YAML.load('./swagger.yaml');
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-//2 Open Route - Public Route
+//Step 2: Open Route - Public Route
 app.get("/", (req, res) => {
-  res.status(200).json({ msg: "Welcome to the Notes API!🎉" });
+  res.status(200).json({ msg: "Welcome to the Swing Notes API!🎉" });
 });
 
 //6 Private Route
@@ -51,31 +58,31 @@ function checkToken(req, res, next) {
   }
 }
 
-//4 Register User **********ROTAS********************
+//Step 4: Register User
 app.post("/api/user/signup", async (req, res) => {
   const { name, email, password, confirmpassword } = req.body;
 
   //validations
   if (!name) {
-    return res.status(400).json({ msg: "The name is mandatory!" });
+    return res.status(400).json({ msg: "The name is required" });
   }
 
   if (!email) {
-    return res.status(400).json({ msg: "The email is mandatory!" });
+    return res.status(400).json({ msg: "Email address is required" });
   }
 
   if (!password) {
-    return res.status(400).json({ msg: "The password is mandatory!" });
+    return res.status(400).json({ msg: "Password is required" });
   }
 
   if (password !== confirmpassword) {
-    return res.status(400).json({ msg: "The passwords do not match!" });
+    return res.status(400).json({ msg: "Check that you have the right email address or password" });
   }
 
   //check if user exists
   const userExists = await User.findOne({ email: email });
   if (userExists) {
-    return res.status(400).json({ msg: "Please use another email!" });
+    return res.status(400).json({ msg: "Please use another email" });
   }
 
   //create password
@@ -92,7 +99,7 @@ app.post("/api/user/signup", async (req, res) => {
   try {
     await user.save();
 
-    res.status(201).json({ msg: "User created successfully!" });
+    res.status(200).json({ msg: "User created successfully!" });
   } catch (error) {
     console.log(error);
 
@@ -100,31 +107,31 @@ app.post("/api/user/signup", async (req, res) => {
   }
 });
 
-//5 Login **********ROTAS********************
+//Step 5: Login
 app.post("/api/user/login", async (req, res) => {
   const { email, password } = req.body;
 
   //validations
   if (!email) {
-    return res.status(400).json({ msg: "The email is mandatory!" });
+    return res.status(400).json({ msg: "Email address is required" });
   }
 
   if (!password) {
-    return res.status(400).json({ msg: "The password is mandatory!" });
+    return res.status(400).json({ msg: "Password is required" });
   }
 
   //check if user exists
   const user = await User.findOne({ email: email });
 
   if (!user) {
-    return res.status(404).json({ msg: "User not found!" });
+    return res.status(404).json({ msg: "User not found" });
   }
 
   //check if password match
   const checkPassword = await bcrypt.compare(password, user.password);
 
   if (!checkPassword) {
-    return res.status(400).json({ msg: "Invalid password!" });
+    return res.status(400).json({ msg: "Invalid password" });
   }
 
   try {
@@ -137,7 +144,7 @@ app.post("/api/user/login", async (req, res) => {
       secret
     );
 
-    res.status(200).json({ msg: "Authentication sent successfully!", token });
+    res.status(200).json({ msg: "Successful authentication!", token });
   } catch (err) {
     console.log(err);
 
@@ -145,8 +152,8 @@ app.post("/api/user/login", async (req, res) => {
   }
 });
 
-//6 **************************Rotas das notas *********************************
-//GET
+//Step 6: CRUD notes
+//get
 app.get("/api/notes", checkToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -157,11 +164,11 @@ app.get("/api/notes", checkToken, async (req, res) => {
   }
 });
 
-//POST
+//post
 app.post("/api/notes", checkToken, async (req, res) => {
   const { title, text } = req.body;
   if (!title || !text) {
-    return res.status(400).json({ msg: "Text and title are mandatory!" });
+    return res.status(400).json({ msg: "Text and title are required" });
   }
 
   try {
@@ -171,13 +178,13 @@ app.post("/api/notes", checkToken, async (req, res) => {
       user: req.user.id,
     });
     await newNote.save();
-    res.status(201).json(newNote);
+    res.status(200).json(newNote);
   } catch (error) {
     res.status(500).json({ msg: "Server error", error });
   }
 });
 
-//PUT
+//put
 app.put("/api/notes/:id", checkToken, async (req, res) => {
   const { title, text } = req.body;
   const noteId = req.params.id;
@@ -191,7 +198,7 @@ app.put("/api/notes/:id", checkToken, async (req, res) => {
     );
 
     if (!updatedNote) {
-      return res.status(404).json({ msg: "Note not found or user mismatch" });
+      return res.status(404).json({ msg: "Something went wrong. Try again with valid email and password" });
     }
 
     res.json(updatedNote);
@@ -200,7 +207,7 @@ app.put("/api/notes/:id", checkToken, async (req, res) => {
   }
 });
 
-//DELETE
+//delete
 app.delete("/api/notes/:id", checkToken, async (req, res) => {
   const noteId = req.params.id;
   const userId = req.user.id;
@@ -212,16 +219,16 @@ app.delete("/api/notes/:id", checkToken, async (req, res) => {
     });
 
     if (!deletedNote) {
-      return res.status(404).json({ msg: "Note not found!" });
+      return res.status(404).json({ msg: "Note not found" });
     }
 
-    res.status(200).json({ msg: "Note deleted successfully" });
+    res.status(200).json({ msg: "Note successfully deleted" });
   } catch (error) {
     res.status(500).json({ msg: "Server error", error });
   }
 });
 
-//3 Credencials
+//Step 3: Credencials, connect to MongoDB and start the server
 const dbUser = process.env.DB_USER;
 const dbPassword = process.env.DB_PASS;
 

@@ -1,0 +1,202 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Swing Notes API
+  description: API for managing notes and users.
+
+host: localhost:3000
+schemes:
+  - http
+
+basePath: /
+
+paths:
+  /api/user/signup:
+    post:
+      summary: Register a new user
+      description: Creates a new user with the provided details.
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: user
+          description: User to be created
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+              - email
+              - password
+              - confirmpassword
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+              confirmpassword:
+                type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+        404:
+          description: Not found
+        500:
+          description: Internal server error
+
+  /api/user/login:
+    post:
+      summary: User authentication
+      description: Authenticates a user and returns a token.
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: credentials
+          description: User's email and password
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+        404:
+          description: Not found
+        500:
+          description: Internal server error
+
+  /api/notes:
+    get:
+      summary: Get all notes for a user
+      description: Returns all notes associated with the authenticated user.
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+        404:
+          description: Not found
+        500:
+          description: Internal server error
+
+    post:
+      summary: Create a new note
+      description: Creates a new note with the specified title and text for the authenticated user.
+      consumes:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: note
+          description: The note to create
+          required: true
+          schema:
+            type: object
+            required:
+              - title
+              - text
+            properties:
+              title:
+                type: string
+              text:
+                type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+        404:
+          description: Not found
+        500:
+          description: Internal server error
+
+  /api/notes/{id}:
+    put:
+      summary: Update a note
+      description: Updates the title and/or text of an existing note for the authenticated user.
+      consumes:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: The ID of the note to update
+        - in: body
+          name: note
+          description: New title or text of the note
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              text:
+                type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+        404:
+          description: Not found
+        500:
+          description: Internal server error
+
+    delete:
+      summary: Delete a note
+      description: Deletes a note with the specified ID for the authenticated user.
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: The ID of the note to delete
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+        404:
+          description: Not found
+        500:
+          description: Internal server error
+
+definitions:
+  Note:
+    type: object
+    properties:
+      title:
+        type: string
+      text:
+        type: string
+      user:
+        type: string
+        description: User ID of the note's owner
+
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
